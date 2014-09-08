@@ -78,7 +78,7 @@ export {
     };
 
     ## This turns on the 'debug' log, shows byte rates by connection    
-    global debug: bool = T &redef;
+    global debug: bool = F &redef;
 
     ## The logging event for the Exfil::Log
     global log_exfil: event(rec: Info);
