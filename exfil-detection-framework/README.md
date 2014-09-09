@@ -37,12 +37,10 @@ byte rate |
 Implementation
 ---------
 The Exfil framework contains three four different Bro scripts:
+
 1. main.bro - The script that drives the Exfil framework. You probably do not want to edit this file.
-2. app-exfil-conn.bro - The script that attaches the Exfil analyzer to connections. You will want to edit this file to choose which connections get
-monitored for file uploads. Note: Start small. If this script is attached to a lot of connections, it may negatively impact the amount of traffic 
-your Bro sensor can process.
-3. app-exfil-after-hours.bro - This is a policy script that issues a Notice if a file upload is detected after the business hours of your organization.
-The business hours of your organization can be edited in this file. 
+2. app-exfil-conn.bro - The script that attaches the Exfil analyzer to connections. You will want to edit this file to choose which connections get monitored for file uploads. Note: Start small. If this script is attached to a lot of connections, it may negatively impact the amount of traffic your Bro sensor can process.
+3. app-exfil-after-hours.bro - This is a policy script that issues a Notice if a file upload is detected after the business hours of your organization. The business hours of your organization can be edited in this file. 
 
 
 
