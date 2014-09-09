@@ -28,8 +28,6 @@ module Exfil;
 
 export {
 
-
-	## The business hours of the network, (on a 24 hour clock)
 	type business_hours: record {
 
     	start_time: count &default = 6;
@@ -37,6 +35,7 @@ export {
 
 	};
 
+	## The business hours of the network, (on a 24 hour clock)
     global hours: business_hours &redef;
 
     redef enum Notice::Type += {

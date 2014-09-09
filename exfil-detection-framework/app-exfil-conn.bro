@@ -26,11 +26,12 @@
 module Exfil;
 
 export {
-
+    ## Defines which subnets are monitored for data exfiltration
     global watched_subnets_conn: set[subnet] = [10.0.0.0/8] &redef;
-    global settings_conn: Settings &redef;
+    ## Defines whether connections with local destinations should be monitored for data exfiltration
     global ignore_local_dest_conn: bool = T &redef;
-    
+    ## Defines the thresholds and polling interval for the exfil framework. See main.bro for more details.
+    global settings_conn: Settings &redef;
 }
 
 event connection_established (c: connection) {

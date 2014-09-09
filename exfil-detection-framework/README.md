@@ -6,12 +6,12 @@ most TCP sessions including sessions that have encrypted payloads (SSH, HTTPS).
 Summary
 ---------
 The Exfil framework detects file uploads by monitoring the upstream byte rate of a connection. When the upstream byte rate of 
-a connection increases beyond a threshold (defined in main.bro), the script begins counting bytes. When the the upstream byte 
-rate returns below the threshold or when the connection ends, the byte counting is ended and a Notice is issued that includes
-the byte count of the burst which corresponds with the size of the file that was transferred.
+a connection increases beyond a threshold (defined in main.bro), the script begins counting bytes. When the upstream byte 
+rate returns below the threshold or when the connection ends, the byte counting stops. If the byte count is above a threshold (defaults at 64 K)
+a Notice is issued that includes the byte count of the burst which corresponds to the size of the file that was transferred.
 
 Upstream TCP byte rate in file transfer
-=====
+----------
 ```
           |
           |
@@ -23,7 +23,7 @@ byte rate |   /          |
                   time
 ```
 Upstream TCP byte rate in non-file transfer
-=====
+---------
 ```
           |
           |
@@ -44,3 +44,14 @@ The Exfil framework contains four Bro scripts:
 4. **__load__.bro** - This file allows the Exfil Framework to be loaded in Bro as a folder rather than each script individually. For instance if the framework files are located in a folder called "exfil_framework" the __load__.bro file allows you to add "@load exfil_framework/" to your local.bro and all the necessary files will be loaded when Bro starts.
 
 
+Quick Start
+------------
+These instructions will guide you through the installation of the Exfil Framework on your Bro sensor.
+
+1. Clone this repository to the "site" folder of your [BRO PATH]/share/bro/site
+2. Enable the Exfil framework by adding the following line to your local.bro
+* @load ./bro-scripts/exfil-detection-framework
+3. Redefine networks monitored for exfil in your local.bro:
+* redef Exfil::watched_subnets_conn = [x.x.x.x, y.y.y.y]; 
+4. Redfine the business hour of your network in your local.bro:
+* redef Exfil::hours = { start_time = x; endtime = y; }; 
