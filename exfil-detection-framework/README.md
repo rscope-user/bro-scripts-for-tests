@@ -50,8 +50,8 @@ These instructions will guide you through the installation of the Exfil Framewor
 
 1. Clone this repository to the "site" folder of your [BRO PATH]/share/bro/site
 2. Enable the Exfil framework by adding the following line to your local.bro
-* @load ./bro-scripts/exfil-detection-framework
+@load ./bro-scripts/exfil-detection-framework
 3. Redefine networks monitored for exfil in your local.bro:
-* redef Exfil::watched_subnets_conn = [x.x.x.x, y.y.y.y]; 
+redef Exfil::watched_subnets_conn = [x.x.x.x, y.y.y.y]; 
 4. Redfine the business hour of your network in your local.bro:
-* redef Exfil::hours = { start_time = x; endtime = y; }; 
+redef Exfil::hours = { start_time = x; endtime = y; }; 
