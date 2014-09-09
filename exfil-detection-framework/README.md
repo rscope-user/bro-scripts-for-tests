@@ -12,6 +12,7 @@ the byte count of the burst which corresponds with the size of the file that was
 
 Upstream TCP byte rate in file transfer
 =====
+```
           |
           |
           |    __________
@@ -20,9 +21,10 @@ byte rate |   /          |
           |_/            |____
           |____________________
                   time
-
+```
 Upstream TCP byte rate in non-file transfer
 =====
+```
           |
           |
           |   
@@ -31,7 +33,7 @@ byte rate |
           |_/\_______/\________
           |____________________
                   time
-
+```
 Implementation
 ---------
 The Exfil framework contains three four different Bro scripts:
