@@ -5,7 +5,7 @@ most TCP sessions including sessions that have encrypted payloads (SCP,SFTP,HTTP
 
 Summary
 ---------
-The Exfil framework detects file uploads by watching connections for 'bursts' in upstream traffic. A 'burst' is an event where the upstream byte rate of a connection surpasses a partiuclar threshold (2000 bytes/sec by default). If the burst is sustained for more than a particular number of bytes (~65K by default), a Notice will be issued.
+The Exfil framework detects file uploads by watching connections for 'bursts' in upstream traffic. A 'burst' is an event where the upstream byte rate of a connection surpasses a particular threshold (2000 bytes/sec by default). If the burst is sustained for more than a particular number of bytes (~65K by default), a Notice will be issued.
 
 ### Upstream TCP byte rate in session with file transfer
 ```               
@@ -52,7 +52,7 @@ git clone https://github.com/reservoirlabs/bro-scripts.git
 ```
 * Redefine networks monitored for exfil in your local.bro:
 ```
-redef Exfil::watched_subnets_conn = [x.x.x.x, y.y.y.y]; 
+redef Exfil::watched_subnets_conn = [x.x.x.x/x, y.y.y.y/y]; 
 ```
 * Redefine the business hour of your network in your local.bro (start_time and end_time must be specified on 24 hour clock):
 ```
