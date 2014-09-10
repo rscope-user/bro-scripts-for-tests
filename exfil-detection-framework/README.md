@@ -38,9 +38,9 @@ Implementation
 ---------
 The Exfil framework contains four Bro scripts:
 
-1. **main.bro** - The script that drives the Exfil framework. You probably do not want to edit this file.
-2. **app-exfil-conn.bro** - The script that attaches the Exfil analyzer to connections. You will want to edit this file to choose which connections get monitored for file uploads. Note: Start small. If this script is attached to a lot of connections, it may negatively impact the amount of traffic your Bro sensor can process.
-3. **app-exfil-after-hours.bro** - This is a policy script that issues a Notice if a file upload is detected after the business hours of your organization. The business hours of your organization can be edited in this file. 
+1. **main.bro** - The script that drives the Exfil analyzer. You probably do not want to edit this file.
+2. **app-exfil-conn.bro** - The script that attaches the Exfil analyzer to connections. You will want to edit the redefs exported by this script to choose which connections get monitored for file uploads. **Note:** Start small. If this script is attached to a lot of connections, it may negatively impact the amount of traffic your Bro sensor can process.
+3. **app-exfil-after-hours.bro** - This is a policy script that issues a Notice if a file upload is detected after the business hours of your organization. You will want to edit the redefs exported by this file to define the appropriate business hours of your organization.
 4. **__load__.bro** - This file allows the Exfil Framework to be loaded in Bro as a folder rather than each script individually. For instance if the framework files are located in a folder called "exfil_framework" the __load__.bro file allows you to add "@load exfil_framework/" to your local.bro and all the necessary files will be loaded when Bro starts.
 
 
@@ -48,10 +48,19 @@ Quick Start
 ------------
 These instructions will guide you through the installation of the Exfil Framework on your Bro sensor.
 
-1. Clone this repository to the "site" folder of your [BRO PATH]/share/bro/site
-2. Enable the Exfil framework by adding the following line to your local.bro
+1. Clone this repository to the "site" folder of your Bro instance
+```
+git clone https://github.com/reservoirlabs/bro-scripts.git
+```
+2. Enable the Exfil framework by adding the following line to your local.bro:
+```
 @load ./bro-scripts/exfil-detection-framework
+```
 3. Redefine networks monitored for exfil in your local.bro:
+```
 redef Exfil::watched_subnets_conn = [x.x.x.x, y.y.y.y]; 
+```
 4. Redfine the business hour of your network in your local.bro:
+```
 redef Exfil::hours = { start_time = x; endtime = y; }; 
+```
