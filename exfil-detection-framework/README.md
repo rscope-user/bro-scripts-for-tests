@@ -10,8 +10,6 @@ a connection increases beyond a threshold (defined in main.bro), the script begi
 rate returns below the threshold or when the connection ends, the byte counting stops. If the byte count is above a threshold (defaults at 64 K)
 a Notice is issued that includes the byte count of the burst which is a rough estimate of the size of the file that was transferred.
 
-Below are two rough illustrations of the traffic feature we exploit to detect file uploads:
-
 Upstream TCP byte rate in session with file transfer
 ----------
 ```               

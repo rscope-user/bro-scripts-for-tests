@@ -71,7 +71,7 @@ export {
         ## How many bytes constitute a file transfer.
         file_thresh: count &default=65536;
         ## Deliver this to the notice framework?
-        notice: bool &default=F;
+        notice: bool &default=T;
         ## Define notice type for this transfer
         note: Notice::Type &default=Exfil::File_Transfer;
 
