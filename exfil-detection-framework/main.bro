@@ -224,7 +224,7 @@ event Exfil::regular_check(c: connection, s: Settings){
 	}
 
     # if the current byte_rate has returned from the burst, notice, log, etc.
-    if (byte_rate < s$byte_rate_thresh && session$reported ) {
+    if ( session$reported && byte_rate < s$byte_rate_thresh ) {
 
         event Exfil::heuristic_transfer_end(c);
         if ( byte_cnt >= s$file_thresh) {
