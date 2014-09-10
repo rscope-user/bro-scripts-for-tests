@@ -17,7 +17,7 @@ Upstream TCP byte rate in session with file transfer
 ```               
           |       * byte_count_threshold (*)
           |       *      
-          |    byte count
+          |       *
           |    ___*______
 byte rate |   /   *      |
           |xxxxxxx*xxxxxxxxxxxx byte_rate_threshold (x)
