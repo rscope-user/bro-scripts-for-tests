@@ -54,13 +54,13 @@ git clone https://github.com/reservoirlabs/bro-scripts.git
 ```
 2. Enable the Exfil framework by adding the following line to your local.bro:
 ```
-@load ./bro-scripts/exfil-detection-framework
+@load bro-scripts/exfil-detection-framework
 ```
 3. Redefine networks monitored for exfil in your local.bro:
 ```
 redef Exfil::watched_subnets_conn = [x.x.x.x, y.y.y.y]; 
 ```
-4. Redfine the business hour of your network in your local.bro:
+4. Redefine the business hour of your network in your local.bro (start_time and end_time must be specified on 24 hour clock):
 ```
-redef Exfil::hours = { start_time = x; endtime = y; }; 
+redef Exfil::hours = [ $start_time=x, $end_time=y ];
 ```
