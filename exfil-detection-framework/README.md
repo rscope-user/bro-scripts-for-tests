@@ -10,7 +10,7 @@ a connection increases beyond a threshold (defined in main.bro), the script begi
 rate returns below the threshold or when the connection ends, the byte counting stops. If the byte count is above a threshold (defaults at 64 K)
 a Notice is issued that includes the byte count of the burst which is a rough estimate of the size of the file that was transferred.
 
-# Upstream TCP byte rate in session with file transfer
+## Upstream TCP byte rate in session with file transfer
 ```               
           |       * byte_count_threshold (*)
           |       *      
@@ -22,7 +22,7 @@ byte rate |   /   *      |
           |_______*____________
                   time
 ```
-# Upstream TCP byte rate in session without file transfer
+## Upstream TCP byte rate in session without file transfer
 ```
           |       * byte_count_threshold (*)
           |       *
@@ -33,7 +33,7 @@ byte rate |       *
           |_______*____________
                   time
 ```
-# Implementation
+## Implementation
 The Exfil framework contains four Bro scripts:
 
 1. **main.bro** - The script that drives the Exfil analyzer. You probably do not want to edit this file.
