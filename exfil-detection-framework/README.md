@@ -8,30 +8,33 @@ Summary
 The Exfil framework detects file uploads by monitoring the upstream byte rate of a connection. When the upstream byte rate of 
 a connection increases beyond a threshold (defined in main.bro), the script begins counting bytes. When the upstream byte 
 rate returns below the threshold or when the connection ends, the byte counting stops. If the byte count is above a threshold (defaults at 64 K)
-a Notice is issued that includes the byte count of the burst which corresponds to the size of the file that was transferred.
+a Notice is issued that includes the byte count of the burst which is a rough estimate of the size of the file that was transferred.
 
-Upstream TCP byte rate in file transfer
+Below are two rough illustrations of the traffic feature we exploit to detect file uploads:
+
+Upstream TCP byte rate in session with file transfer
 ----------
-```
-          |
-          |
-          |    __________
-byte rate |   /          |
-          |  /           |
-          |_/            |____
-          |____________________
+```               
+          |       * byte_count_threshold (*)
+          |       *      
+          |    byte count
+          |    ___*______
+byte rate |   /   *      |
+          |xxxxxxx*xxxxxxxxxxxx byte_rate_threshold (x)
+          |_/     *      |____
+          |_______*____________
                   time
 ```
-Upstream TCP byte rate in non-file transfer
+Upstream TCP byte rate in session without file transfer
 ---------
 ```
-          |
-          |
-          |   
-byte rate |   
-          |  
-          |_/\_______/\________
-          |____________________
+          |       * byte_count_threshold (*)
+          |       *
+          |       *
+byte rate |       *  
+          |xxxxxxx*xxxxxxxxxxxxx byte_rate_threshold (x)
+          |_/\____*__/\________
+          |_______*____________
                   time
 ```
 Implementation
