@@ -1,6 +1,6 @@
 # Contributed by Bob Rotsted @ Reservoir Labs
 #
-# Small Business Inoovation Research (SBIR) Data Rights.
+# Small Business Innovation Research (SBIR) Data Rights.
 #
 # These SBIR data are furnished with SBIR rights under Contract
 # No. DE-SC0004400 and DE-SC0006343. For a period of 4 years
