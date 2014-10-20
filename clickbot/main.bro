@@ -372,52 +372,52 @@ event bro_init()
 
 
 function snap_click_histogram()
-{
+	{
 	local header = T;
 
 	for ( query in query_click_history_global )
-	{
+		{
 		header = T;
 		for ( click in query_click_history_global[query] )
-		{
-			if ( query_click_history_global[query][click] != 0 ) 
 			{
-				if(header) 
+			if ( query_click_history_global[query][click] != 0 ) 
 				{
+				if(header) 
+					{
 					print clickbot_qc_file, "";
 					print clickbot_qc_file, fmt("Query-click histogram for query %s", query);
 					print clickbot_qc_file, fmt("------------------------------------------------------------------------");
 					header = F;
-				}		
+					}		
 				print clickbot_qc_file, fmt("query: %s; click: %s; hits: %d", query, click, query_click_history_global[query][click]);
-			}
-		}		
-	}
+				}
+			}		
+		}
 	
 	for ( host in hosts )
-	{
-		for ( query in query_click_history_hosts[host] )
 		{
+		for ( query in query_click_history_hosts[host] )
+			{
 			if(path_to_track == query)
 				investigate_host(host, query);
 			header = T;
 			for ( click in query_click_history_hosts[host][query] )
-			{
-				if( query_click_history_hosts[host][query][click] != 0 )
 				{
-					if(header) 
+				if( query_click_history_hosts[host][query][click] != 0 )
 					{
+					if(header) 
+						{
 						print clickbot_qc_file, "";
 						print clickbot_qc_file, fmt("Query-click histogram for user %s on page %s", host, query);
 						print clickbot_qc_file, fmt("------------------------------------------------------------------------");
 						header = F;
-					}		
+						}		
 					print clickbot_qc_file, fmt("query: %s; click: %s; hits: %d", query, click, query_click_history_hosts[host][query][click]);
-				}
-			}		
+					}
+				}		
+			}
 		}
-	}
 	
 	print clickbot_qc_file, "";
 	
-}
+	}
