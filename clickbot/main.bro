@@ -214,7 +214,7 @@ function investigate_host(host: addr, query: string)
 function process_html_response(c: connection, mime_type : string)
 	{	
 	local ext = ext_map[mime_type];
-	local fname = fmt("%s/%s-%s-%s-%s.%s", FileExtract::prefix, c$id$orig_h, c$id$orig_p, c$id$resp_h, c$id$resp_p, ext);
+	local fname = fmt("%s-%s-%s-%s.%s", c$id$orig_h, c$id$orig_p, c$id$resp_h, c$id$resp_p, ext);
 	local links_list = html_parser_extract_links(fname);
 	
 	if ( |links_list| == 0 )
