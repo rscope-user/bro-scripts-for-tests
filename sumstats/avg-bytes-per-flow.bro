@@ -14,56 +14,48 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-module TopByteCount;
+module AvgByteCount;
 
 export {
     
-    global epoch: interval = 10min &redef;
+    global epoch: interval = 1min &redef;
     redef enum Log::ID += { LOG };
 
     type Info: record {
         start_time: string &log;
-        epoch: interval &log;
         role: string &log;
-        host: addr     &log;
-        reverse_dns: string &log &default="";
-        cnt: count &log;
+        epoch: interval &log;
+        avg_bytes: double &log;
+        std_dev_bytes: double &log;
     };
 
-    global log_conn_count: event(rec: Info);
+    global log_avg_bytes_per_flow: event(rec: Info);
     
 }
 
 event bro_init()
     {
-    local rec: TopByteCount::Info;
-    Log::create_stream(TopByteCount::LOG, [$columns=Info, $ev=log_conn_count]);
+    local rec: AvgByteCount::Info;
+    Log::create_stream(AvgByteCount::LOG, [$columns=Info, $ev=log_avg_bytes_per_flow]);
 
-    local r1 = SumStats::Reducer($stream="src.byte.per.epoch", $apply=set(SumStats::TOPK), $topk_size=top_k_size);
-    SumStats::create([$name="top_src.byte.per.epoch",
+    local r1 = SumStats::Reducer($stream="avg.byte.per.epoch", $apply=set(SumStats::AVERAGE, SumStats::STD_DEV));
+    SumStats::create([$name="top_avg.byte.per.epoch",
                       $epoch=epoch,
                       $reducers=set(r1),
                       $epoch_result(ts: time, key: SumStats::Key, result: SumStats::Result) =
                         {
-                        local r = result["src.byte.per.epoch"];
-                        local s: vector of SumStats::Observation;
-                        s = topk_get_top(r$topk, 10);
-                        for ( i in s )
-                            {
-
-                                when ( local host = lookup_addr(key$host) ) { 
-                                    rec = [$start_time= strftime("%c", r$begin), $epoch=epoch, $role=key$str, $host=key$host, 
-                                           $reverse_dns=host, $cnt=topk_count(r$topk, s[i])];
-    
-                                    Log::write(TopByteCount::LOG, rec);
-                                }
-                                
-                            }
-                        }]);
+                        local r = result["avg.byte.per.epoch"];
+                        rec = [$start_time= strftime("%c", r$begin), $epoch=epoch, $role=key$str, $avg_bytes=r$average, $std_dev_bytes=r$std_dev];
+                        Log::write(AvgByteCount::LOG, rec);
+                        }
+                        ]);
     }
 
 event connection_state_remove(c: connection)
     {
-        SumStats::observe("src.byte.per.epoch", [$host=c$id$orig_h, $str="orig"], [$num=c$orig$size]);
-        SumStats::observe("src.byte.per.epoch", [$host=c$id$resp_h, $str="resp"], [$num=c$resp$size]);
+        SumStats::observe("avg.byte.per.epoch", [$str="orig"], [$num=c$orig$size]);
+        SumStats::observe("avg.byte.per.epoch", [$str="resp"], [$num=c$resp$size]);
+        SumStats::observe("avg.byte.per.epoch", [$str="aggregate"], [$num=c$resp$size + c$orig$size]);
+
     }
+
