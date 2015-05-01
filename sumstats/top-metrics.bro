@@ -10,8 +10,8 @@
 ##!   - Top URLs: URLs that are hit the most
 ##!
 ##! This script reports the following logs:
-##!   - topmetrics_talkers.log, for top talkers measurements.
-##!   - topmetrics_urls.log, for top URLs measurements.
+##!   - topmetrics_talkers.log: for top talkers measurements
+##!   - topmetrics_urls.log: for top URLs measurements
 ##!
 
 @load base/frameworks/sumstats
@@ -33,7 +33,7 @@ export {
     redef enum Log::ID += { TALKERS };
 
     type Info: record {
-        epoch_time: time &log;            ##< Time at the end of the epoch 
+        epoch_time: time &log;              ##< Time at the end of the epoch 
         top_list: vector of string &log;    ##< Ordered list of top URLs 
         top_counts: vector of string &log;  ##< Counters for each URL
     };
@@ -74,7 +74,6 @@ event bro_init()
                               if ( ++i == top_size )
                                   break;
                               }
-
                           Log::write(TopMetrics::URLS, [$epoch_time=ts, 
                                                         $top_list=top_list, 
                                                         $top_counts=top_counts]);
@@ -97,7 +96,6 @@ event bro_init()
                               if ( ++i == top_size )
                                   break;
                               }
-
                           Log::write(TopMetrics::TALKERS, [$epoch_time=ts, 
                                                            $top_list=top_list, 
                                                            $top_counts=top_counts]);
@@ -126,8 +124,6 @@ function generate_talker_observations(id: conn_id, total_bytes : count, bytes_le
 
 event connection_state_remove(c: connection)
     {
-        # Define a number of observations proportional to the total number of bytes. 
-        # Proportionality is defined by the parameter talker_bin_size.
         local total_bytes = c$conn$orig_ip_bytes + c$conn$resp_ip_bytes;
         generate_talker_observations(c$id, total_bytes, total_bytes);
     } 
