@@ -9,6 +9,10 @@
 ##!   - Top talkers: connections that carry the largest amount of data
 ##!   - Top URLs: URLs that are hit the most
 ##!
+##! This script reports the following logs:
+##!   - topmetrics_talkers.log, for top talkers measurements.
+##!   - topmetrics_urls.log, for top URLs measurements.
+##!
 
 @load base/frameworks/sumstats
 @load base/protocols/http
@@ -18,9 +22,11 @@ module TopMetrics;
 export {
     
     ## The duration of the epoch, which defines the time between two consecutive reports
-    const epoch_duration: interval = 10 sec &redef;
+    const epoch_duration: interval = 30 sec &redef;
     ## The size of the top set to track
     const top_size: count = 20 &redef;
+    ## The bin size in bytes defining the resolution of the top talkers
+    const talker_bin_size = 1000;
 
     # Logging info
     redef enum Log::ID += { URLS };
@@ -86,7 +92,7 @@ event bro_init()
                           s = topk_get_top(r$topk, top_size);
                           for ( element in s ) 
                               {
-                              top_list[|top_list|] = fmt("%s", s[element]$num);
+                              top_list[|top_list|] = s[element]$str;
                               top_counts[|top_counts|] = topk_count(r$topk, s[element]);
                               if ( ++i == top_size )
                                   break;
@@ -101,14 +107,28 @@ event bro_init()
 
 event DNS::log_dns(rec: DNS::Info)
     {
-        # Define an observation
+        # Define an observation based on the queried URL
         if ( rec?$query )
             SumStats::observe("top.urls", [], [$str=fmt("%s", rec$query)]);
     }
 
+function generate_talker_observations(id: conn_id, total_bytes : count, bytes_left : int)
+    {
+    # Generate as many observations as total number of bytes this connection has
+    # divided by the talker bin size. Resolution of this measurement can be increased
+    # by reducing the value of talker_bin_size at the expense of more CPU compute.
+    SumStats::observe("top.talkers", [], [$str=fmt("[%s : %s : %s : %s](%d)", id$orig_h, id$orig_p, id$resp_h, id$resp_p, total_bytes)]);
+    bytes_left = bytes_left - talker_bin_size;
+    if(bytes_left <= 0)
+        return;
+    generate_talker_observations(id, total_bytes, bytes_left);
+    } 
+
 event connection_state_remove(c: connection)
     {
-        # Define an observation
-        SumStats::observe("top.talkers", [], [$num=c$conn$orig_ip_bytes+c$conn$resp_ip_bytes]);
+        # Define a number of observations proportional to the total number of bytes. 
+        # Proportionality is defined by the parameter talker_bin_size.
+        local total_bytes = c$conn$orig_ip_bytes + c$conn$resp_ip_bytes;
+        generate_talker_observations(c$id, total_bytes, total_bytes);
     } 
 
