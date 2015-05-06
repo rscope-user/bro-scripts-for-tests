@@ -105,9 +105,16 @@ event bro_init()
 
 event DNS::log_dns(rec: DNS::Info)
     {
-        # Define an observation based on the queried URL
+        # Observation based on DNS queries
         if ( rec?$query )
             SumStats::observe("top.urls", [], [$str=fmt("%s", rec$query)]);
+    }
+
+event ssl_extension_server_name(c: connection, is_orig: bool, names: string_vec)
+    {
+        # Observation based on the Server Name Indication (SNI)
+        for ( index in names )
+            SumStats::observe("top.urls", [], [$str=fmt("%s", names[index])]);        
     }
 
 function generate_talker_observations(id: conn_id, total_bytes : count, bytes_left : int)
