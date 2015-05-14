@@ -23,6 +23,19 @@
 ##!   - protocolstats_orig.log: protocol stats for outgoing traffic
 ##!   - protocolstats_resp.log: protocol stats for incoming traffic 
 ##!
+##! Tips:
+##!   - To add or remove new protocols to track, please redefine 
+##!     ProtocolStats::tracked_protocols and ProtocolStats::Info. 
+##!   - This analytic adds a new Weird::actions called
+##!     'protocolstats_untracked' that is triggered every time
+##!     there is traffic parsed by Bro that does not correpond
+##!     to any of the tracked protocols.
+##!   - The last column (UNTRACKED) in protocolstats_*.log 
+##!     reports % of traffic that Bro was able to understand 
+##!     but which is not in the list of tracked protocols.
+##!   - To learn which protocols are part of UNTRACKED, search
+##!     for 'protocolstats_untracked' entries in weird.log
+##! 
 
 
 module ProtocolStats;
@@ -113,7 +126,8 @@ export {
     
 }
 
-
+## This weird action is triggered every time this analytic finds traffic on
+## a protocol that is not the list of tracked protocols.
 redef Weird::actions += { ["protocolstats_untracked"] = Weird::ACTION_LOG };
 
 
