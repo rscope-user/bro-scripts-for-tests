@@ -35,6 +35,11 @@
 ##!     but which is not in the list of tracked protocols.
 ##!   - To learn which protocols are part of UNTRACKED, search
 ##!     for 'protocolstats_untracked' entries in weird.log
+##!   - Protocol compositions (i.e. when the list of protocol analyzers
+##!     successfully attached to a flow is larger than 1), are 
+##!     reported separately. E.g. 1000 bytes of traffic reported
+##!     on protocol composition 'ssl,smtp' is reported as 1000 bytes on
+##!     SSL and 1000 bytes on SMTP separately. 
 ##! 
 
 
@@ -145,7 +150,7 @@ function generate_protocol_stats(ts: time, direction: string)
     local tracked_protocol_values: table[string] of double; 
     local bytes_per_proto: table[string] of double = table(); 
 
-    if (direction == "orig")
+    if ( direction == "orig" )
         bytes_per_proto = bytes_per_proto_orig;
     else
         bytes_per_proto = bytes_per_proto_resp;
@@ -225,7 +230,7 @@ function generate_protocol_stats(ts: time, direction: string)
           ];
 
     # Write out the record and re-initialize the global table
-    if (direction == "orig") {
+    if ( direction == "orig" ) {
         Log::write(ProtocolStats::ORIG, rec);
         bytes_per_proto_orig = table();
     }
@@ -233,8 +238,26 @@ function generate_protocol_stats(ts: time, direction: string)
         Log::write(ProtocolStats::RESP, rec);
         bytes_per_proto_resp = table();
     }
+
+    return;
 }
  
+
+#
+# Records one observation 
+#
+function record_observation(key: SumStats::Key, r: SumStats::ResultVal, direction: string) { 
+    local proto_index: count;
+    local all_protos = split(key$str, /,/);
+
+    if ( direction == "orig" ) 
+        for ( proto_index in all_protos ) bytes_per_proto_orig[all_protos[proto_index]] = r$sum;
+    else
+        for ( proto_index in all_protos ) bytes_per_proto_resp[all_protos[proto_index]] = r$sum;
+
+    return;
+}
+
 
 event bro_init()
     {
@@ -249,22 +272,14 @@ event bro_init()
     SumStats::create([$name="orig.proto.stats",
                       $epoch=epoch,
                       $reducers=set(r1),
-                      $epoch_result(ts: time, key: SumStats::Key, result: SumStats::Result) =
-                      {
-                        local r = result["orig.proto.stats"];
-                        bytes_per_proto_orig[key$str] = r$sum;
-                      },
+                      $epoch_result(ts: time, key: SumStats::Key, result: SumStats::Result) = { record_observation(key, result["orig.proto.stats"], "orig"); },
                       $epoch_finished(ts: time) = { generate_protocol_stats(ts, "orig"); } 
                    ]);
 
     SumStats::create([$name="resp.proto.stats",
                       $epoch=epoch,
                       $reducers=set(r2),
-                      $epoch_result(ts: time, key: SumStats::Key, result: SumStats::Result) =
-                      {
-                        local r = result["resp.proto.stats"];
-                        bytes_per_proto_resp[key$str] = r$sum;
-                      },
+                      $epoch_result(ts: time, key: SumStats::Key, result: SumStats::Result) = { record_observation(key, result["resp.proto.stats"], "resp"); },
                       $epoch_finished(ts: time) = { generate_protocol_stats(ts, "resp"); } 
                    ]);
     }
