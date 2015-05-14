@@ -35,11 +35,11 @@ module TopMetrics;
 export {
     
     ## The duration of the epoch, which defines the time between two consecutive reports
-    const epoch_duration: interval = 30 sec &redef;
+    const epoch_duration: interval = 10 sec &redef;
     ## The size of the top set to track
     const top_size: count = 20 &redef;
     ## The bin size in bytes defining the resolution of the top talkers
-    const talker_bin_size = 1000;
+    const talker_bin_size = 10000;
 
     # Logging info
     redef enum Log::ID += { URLS };
@@ -130,21 +130,28 @@ event ssl_extension_server_name(c: connection, is_orig: bool, names: string_vec)
             SumStats::observe("top.urls", [], [$str=fmt("%s", names[index])]);        
     }
 
-function generate_talker_observations(id: conn_id, total_bytes : count, bytes_left : int)
+#
+# Note: 05/14/2015.
+# Bro 2.3 does not support 'while' loops nor 'for' loops over non container objects, 
+# so we use recursivity to effectively implement the loop. To ensure we don't 
+# block the stack, a max number of iterations is controlled via the num_iters parameter.
+# TODO: this should really be implemented in a 'while' loop and run on 2.4 (when available).
+# 
+function generate_talker_observations(id: conn_id, total_bytes: count, bytes_left: int, num_iters: int)
     {
     # Generate as many observations as total number of bytes this connection has
     # divided by the talker bin size. Resolution of this measurement can be increased
     # by reducing the value of talker_bin_size at the expense of more CPU compute.
     SumStats::observe("top.talkers", [], [$str=fmt("[%s : %s : %s : %s](%d)", id$orig_h, id$orig_p, id$resp_h, id$resp_p, total_bytes)]);
     bytes_left = bytes_left - talker_bin_size;
-    if(bytes_left <= 0)
+    if(bytes_left <= 0 || num_iters > 10)
         return;
-    generate_talker_observations(id, total_bytes, bytes_left);
+    generate_talker_observations(id, total_bytes, bytes_left, num_iters + 1);
     } 
 
 event connection_state_remove(c: connection)
     {
         local total_bytes = c$conn$orig_ip_bytes + c$conn$resp_ip_bytes;
-        generate_talker_observations(c$id, total_bytes, total_bytes);
+        generate_talker_observations(c$id, total_bytes, total_bytes, 1);
     } 
 
