@@ -127,7 +127,7 @@ export {
 }
 
 ## This weird action is triggered every time this analytic finds traffic on
-## a protocol that is not the list of tracked protocols.
+## a protocol that is not in the list of tracked protocols.
 redef Weird::actions += { ["protocolstats_untracked"] = Weird::ACTION_LOG };
 
 
