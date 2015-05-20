@@ -30,8 +30,8 @@
 ##!     'protocolstats_untracked' that is triggered every time
 ##!     there is traffic parsed by Bro that does not correpond
 ##!     to any of the tracked protocols.
-##!   - The last column (UNTRACKED) in protocolstats_*.log 
-##!     reports % of traffic that Bro was able to understand 
+##!   - The last column (UNTRACKED) in protocolstats_*.log
+##!     reports % of traffic that Bro was able to understand
 ##!     but which is not in the list of tracked protocols.
 ##!   - To learn which protocols are part of UNTRACKED, search
 ##!     for 'protocolstats_untracked' entries in weird.log
@@ -49,6 +49,13 @@ export {
     
     ## The duration of the epoch, which defines the time between two consecutive reports
     global epoch: interval = 10sec &redef;
+
+    ## The protocol analyzers will build composites based on traffic. For example, 
+    ## SSL HTTP traffic will be denoted as SSL,HTTP (or HTTP,SSL). If composite_protocols
+    ## is set, it will use the composites. If this is unset, it will attribute each 
+    ## component of the composite to the underlying protocol.
+    global composite_protocols: bool = T &redef;
+
     ## Supported (tracked) protocols. To add or remove new protocols, please redefine
     ## both ProtocolStats::tracked_protocols and ProtocolStats::Info.
     global tracked_protocols: vector of string = {"ARP", "AYIYA", 
@@ -67,7 +74,9 @@ export {
                                                   "SNMP", "SMB", "SMTP", "SOCKS", "SSH", "SSL", "SteppingStone", "Syslog", 
                                                   "TCP", "Teredo", 
                                                   "UDP", 
-                                                  "ZIP"
+                                                  "ZIP",
+                                                  "HTTP,SSL",
+                                                  "SSL,HTTP"
                                                  } &redef;
 
     ## Protocols that get logged
@@ -115,7 +124,9 @@ export {
         Teredo: double &log;
         UDP: double &log;
         ZIP: double &log;
-        UNTRACKED: double &log; # Traffic that has been parsed but which is not tracked in tracked_protocols 
+        HTTP_SSL: double &log;
+        SSL_HTTP: double &log;
+        UNTRACKED: double &log; # Traffic that has been parsed but which is not tracked in tracked_protocols
     } &redef;
 
     # Logging info
@@ -125,10 +136,10 @@ export {
     # Logging events to track the summary stats (incoming and outgoing traffic) 
     global log_orig_proto_stats: event(rec: Info);
     global log_resp_proto_stats: event(rec: Info);
+
     # Table that takes as index a protocol name and as value the total number of bytes seen
     global bytes_per_proto_orig: table[string] of double = table();
     global bytes_per_proto_resp: table[string] of double = table();
-    
 }
 
 ## This weird action is triggered every time this analytic finds traffic on
@@ -138,6 +149,7 @@ redef Weird::actions += { ["protocolstats_untracked"] = Weird::ACTION_LOG };
 
 #
 # Generates a report based on the traffic direction
+# This is called every 'epoch' interval.
 #
 function generate_protocol_stats(ts: time, direction: string)
 {
@@ -159,10 +171,13 @@ function generate_protocol_stats(ts: time, direction: string)
     for ( proto in bytes_per_proto )
         sum += bytes_per_proto[proto];
         
-    # Compute percentages and prepare the breakdown
+    # Compute percentages and prepare the breakdown of all known protocols
     for ( proto_index in tracked_protocols ) { 
         local percentage: double;
         proto = to_lower(tracked_protocols[proto_index]); # protocol services in Bro are all lower case
+        # If there's any data, calculate the percentage of total annd remove
+        # the entry. At the end, all known protocols will be removed and all that
+        # will be left are the unknowns. 
         if ( sum != 0 && proto in bytes_per_proto ) {
             percentage = ( bytes_per_proto[proto] / sum ) * 100;
             delete bytes_per_proto[proto];
@@ -181,7 +196,8 @@ function generate_protocol_stats(ts: time, direction: string)
         Log::write(Weird::LOG, rec_weird);
         sum_untracked += bytes_per_proto[proto];
     }
-    
+
+
     # Log one entry 
     rec = [$start_time= strftime("%c", ts - epoch ), 
            $ARP=tracked_protocol_values["arp"],
@@ -226,6 +242,8 @@ function generate_protocol_stats(ts: time, direction: string)
            $Teredo=tracked_protocol_values["teredo"],
            $UDP=tracked_protocol_values["udp"],
            $ZIP=tracked_protocol_values["zip"],
+           $HTTP_SSL=tracked_protocol_values["http,ssl"],
+           $SSL_HTTP=tracked_protocol_values["ssl,http"],
            $UNTRACKED=100*sum_untracked/sum
           ];
 
@@ -248,12 +266,22 @@ function generate_protocol_stats(ts: time, direction: string)
 #
 function record_observation(key: SumStats::Key, r: SumStats::ResultVal, direction: string) { 
     local proto_index: count;
-    local all_protos = split(key$str, /,/);
+    local proto:string_array;
 
+    # use either composite protocols or break them up into their individual components
+    if ( composite_protocols )  {
+        proto = split(key$str, /,/); 
+    }
+    else {
+        proto = string_array();
+        proto[0] = key$str;
+    }
+
+    # populate a toble index by protocol with the values of the observation
     if ( direction == "orig" ) 
-        for ( proto_index in all_protos ) bytes_per_proto_orig[all_protos[proto_index]] = r$sum;
+        for ( proto_index in proto ) bytes_per_proto_orig[proto[proto_index]] = r$sum;
     else
-        for ( proto_index in all_protos ) bytes_per_proto_resp[all_protos[proto_index]] = r$sum;
+        for ( proto_index in proto ) bytes_per_proto_resp[proto[proto_index]] = r$sum;
 
     return;
 }
