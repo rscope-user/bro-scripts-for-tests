@@ -266,22 +266,22 @@ function generate_protocol_stats(ts: time, direction: string)
 #
 function record_observation(key: SumStats::Key, r: SumStats::ResultVal, direction: string) { 
     local proto_index: count;
-    local proto:string_array;
+    local protocols:string_array;
 
     # use either composite protocols or break them up into their individual components
     if ( composite_protocols )  {
-        proto = split(key$str, /,/); 
+        protocols = string_array();
+        protocols[0] = key$str;
     }
     else {
-        proto = string_array();
-        proto[0] = key$str;
+        protocols = split(key$str, /,/); 
     }
 
-    # populate a toble index by protocol with the values of the observation
+    # populate a table index by protocol with the values of the observation
     if ( direction == "orig" ) 
-        for ( proto_index in proto ) bytes_per_proto_orig[proto[proto_index]] = r$sum;
+        for ( proto_index in protocols ) bytes_per_proto_orig[protocols[proto_index]] = r$sum;
     else
-        for ( proto_index in proto ) bytes_per_proto_resp[proto[proto_index]] = r$sum;
+        for ( proto_index in protocols ) bytes_per_proto_resp[protocols[proto_index]] = r$sum;
 
     return;
 }
