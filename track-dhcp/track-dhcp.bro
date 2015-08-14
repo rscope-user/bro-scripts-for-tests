@@ -25,3 +25,4 @@ event connection_state_remove (c: connection) {
     if ( c$id$resp_h in TrackDHCP::ip_to_mac ) 
         c$conn$resp_mac = TrackDHCP::ip_to_mac[c$id$resp_h];
 }
+
