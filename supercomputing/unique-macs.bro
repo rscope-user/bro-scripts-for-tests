@@ -37,7 +37,6 @@ export {
 
 event bro_init()
     {
-    local rec: UniqueMacs::Info;
     Log::create_stream(UniqueMacs::LOG, [$columns=Info, $ev=log_conn_count]);
 
     local r1 = SumStats::Reducer($stream="unique.macs", $apply=set(SumStats::UNIQUE));
@@ -46,6 +45,7 @@ event bro_init()
                       $reducers=set(r1),
                       $epoch_result(ts: time, key: SumStats::Key, result: SumStats::Result) =
                         {
+                        local rec: UniqueMacs::Info;
                         local r = result["unique.macs"];
                         rec = [$start_time= strftime("%c", r$begin), $epoch=epoch, $net=key$str, $mac_cnt=r$unique];
                         Log::write(UniqueMacs::LOG, rec);
