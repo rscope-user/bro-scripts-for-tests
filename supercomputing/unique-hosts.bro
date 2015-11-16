@@ -37,7 +37,6 @@ export {
 
 event bro_init()
     {
-    local rec: UniqueHosts::Info;
     Log::create_stream(UniqueHosts::LOG, [$columns=Info, $ev=log_conn_count]);
 
     local r1 = SumStats::Reducer($stream="unique.hosts", $apply=set(SumStats::UNIQUE));
@@ -46,10 +45,10 @@ event bro_init()
                       $reducers=set(r1),
                       $epoch_result(ts: time, key: SumStats::Key, result: SumStats::Result) =
                         {
+                        local rec: UniqueHosts::Info;
                         local r = result["unique.hosts"];
                         rec = [$start_time= strftime("%c", r$begin), $epoch=epoch, $net=key$str, $ip_cnt=r$unique];
                         Log::write(UniqueHosts::LOG, rec);
-                                
                         }
                         ]);
     }
