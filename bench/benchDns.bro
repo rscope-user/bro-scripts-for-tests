@@ -107,4 +107,3 @@ event dns_request(c: connection, msg: dns_msg, query: string, qtype: count, qcla
         }
 
 
-# test
