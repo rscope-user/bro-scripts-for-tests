@@ -78,4 +78,3 @@ event connection_state_remove(c: connection)
         SumStats::observe("resp.traffic.summary", [$str=c$conn$service], [$num=c$resp$size]);
     }
 
-
